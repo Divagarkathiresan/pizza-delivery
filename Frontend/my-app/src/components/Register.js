@@ -25,7 +25,7 @@ const Register = () => {
       setIsSendingCode(true);
       await api.post('/auth/send-email-verification', { email });
       setCodeSent(true);
-      setMessage('Verification code sent. Check your email inbox.');
+      setMessage('Verification code sent. Check your SPAM in your mail.');
       setError(null);
     } catch (err) {
       setError(err.response?.data?.message || 'Could not send verification code');

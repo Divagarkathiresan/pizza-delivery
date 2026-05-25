@@ -4,6 +4,7 @@ import api from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { pizzaIngredients } from '../data/pizzaMenu';
+import AddressForm from './AddressForm';
 
 const loadRazorpayScript = () => new Promise(resolve => {
   if (window.Razorpay) {
@@ -24,10 +25,17 @@ const Cart = () => {
   const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [showAddressForm, setShowAddressForm] = useState(false);
+  const [address, setAddress] = useState(null);
 
-  const checkout = async () => {
+  const handleCheckoutClick = () => {
     setError(null);
     setMessage(null);
+    setShowAddressForm(true);
+  };
+
+  const handleAddressSubmit = async (addressData) => {
+    setAddress(addressData);
     setIsCheckingOut(true);
 
     try {
@@ -65,15 +73,19 @@ const Cart = () => {
         modal: {
           ondismiss: () => {
             setIsCheckingOut(false);
+            setShowAddressForm(true);
           }
         },
         handler: async response => {
           try {
             await api.post('/payments/verify', {
               ...response,
-              items: cartItems
+              items: cartItems,
+              deliveryAddress: addressData
             });
             clearCart();
+            setShowAddressForm(false);
+            setAddress(null);
             setMessage('Payment successful. Your order has been placed.');
             setError(null);
           } catch (err) {
@@ -87,13 +99,21 @@ const Cart = () => {
       razorpay.on('payment.failed', response => {
         setError(response.error?.description || 'Payment failed. Please try again.');
         setIsCheckingOut(false);
+        setShowAddressForm(true);
       });
 
       razorpay.open();
     } catch (err) {
       setError(err.response?.data?.message || 'Checkout failed');
       setIsCheckingOut(false);
+      setShowAddressForm(true);
     }
+  };
+
+  const handleAddressCancel = () => {
+    setShowAddressForm(false);
+    setAddress(null);
+    setIsCheckingOut(false);
   };
 
   return (
@@ -140,11 +160,19 @@ const Cart = () => {
             <h3>Bill Summary</h3>
             <div className="summary-line"><span>Items</span><strong>{totals.count}</strong></div>
             <div className="summary-total"><span>Total</span><strong>₹{totals.total}</strong></div>
-            <button className="primary-button" type="button" onClick={checkout} disabled={isCheckingOut}>
+            <button className="primary-button" type="button" onClick={handleCheckoutClick} disabled={isCheckingOut}>
               {isCheckingOut ? 'Opening payment...' : 'Pay with Razorpay'}
             </button>
           </aside>
         </div>
+      )}
+
+      {showAddressForm && (
+        <AddressForm
+          onSubmit={handleAddressSubmit}
+          onCancel={handleAddressCancel}
+          isLoading={isCheckingOut}
+        />
       )}
     </div>
   );
