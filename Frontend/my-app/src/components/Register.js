@@ -47,6 +47,7 @@ const Register = () => {
       setPassword('');
       setEmailCode('');
       setCodeSent(false);
+      navigate('/login');
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed');
       setMessage(null);
