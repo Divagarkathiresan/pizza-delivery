@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import logo from '../logo.svg';
 
 const NavBar = () => {
   const { user, logout } = useAuth();
@@ -10,7 +11,10 @@ const NavBar = () => {
   return (
     <header className="app-header">
       <div className="brand">
-        <Link to="/">Pizza Delivery</Link>
+        <Link to="/">
+          <img src={logo} alt="" />
+          <span>Pizza Pulse</span>
+        </Link>
       </div>
       <nav>
         {!user && (
